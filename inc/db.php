@@ -1,7 +1,7 @@
 <?php
 
 class db {
-    public $conn;
+    private $conn;
 
     public function __construct() {
         global $CFG;
@@ -14,7 +14,6 @@ class db {
     }
 
     public function insertBook($title, $authors, $genres, $yearpublished, $publisherid, $isbn) {
-        global $DB;
         $sql = "INSERT into `book` (`title`,`yearpublished`,`isbn`,`publisher`) VALUES (:title, :yearpublished, :isbn, :publisher)";
         $stmt = $this->conn->prepare($sql);
 
@@ -28,8 +27,6 @@ class db {
     }
 
     public function insertPublisher($name, $address1, $address2, $town, $county, $country, $postcode, $phone, $www, $twitter) {
-        global $DB;
-
         $sql = "INSERT INTO `publisher`
             (`name`, `address1`, `address2`, `town`, `county`, `country`, `postcode`, `phone`, `www`, `twitter`)
             VALUES
@@ -55,7 +52,6 @@ class db {
     }
 
     public function insertAuthor($firstname, $lastname, $www, $twitter) {
-        global $DB;
 
         $sql = "INSERT INTO `author`
             (`firstname`, `lastname`, `www`, `twitter`)
@@ -76,7 +72,6 @@ class db {
     }
 
     public function updateBook($id, $title, $authors, $genres, $yearpublished, $publisherid, $isbn) {
-        global $DB;
         $sql = "UPDATE `book` SET (`title`=:title,`yearpublished`=:yearpublished,`isbn`=:isbn,`publisher`=:publisher) WHERE `id`=:id";
         $stmt = $this->conn->prepare($sql);
 
@@ -91,7 +86,6 @@ class db {
     }
 
     public function updatePublisher($id, $name, $address1, $address2, $town, $county, $country, $postcode, $phone, $www, $twitter) {
-        global $DB;
 
         $sql = "UPDATE `publisher` SET
             (`name`=:name, `address1`=:address1, `address2`:=address2, `town`=:town, `county`=:county, `country`=:country, `postcode`=:postcode, `phone`=:phone, `www`=:www, `twitter`=:twitter)";
@@ -116,7 +110,6 @@ class db {
     }
 
     public function updateAuthor($id, $firstname, $lastname, $www, $twitter) {
-        global $DB;
 
         $sql = "UPDATE `author` SET
             (`firstname`=:firstname, `lastname`=:lastname, `www`=:www, `twitter`=:twitter)";
@@ -131,5 +124,18 @@ class db {
 
         $stmt->execute();
 
+    }
+
+    public function searchBooks($query) {
+        $sql = "SELECT `book`.*, `publisher`.`name` AS `publishername` FROM `book`
+        JOIN `publisher` ON `publisher`.`id` = `book`.`publisher_id`
+        WHERE `title` LIKE :title";
+        $query = '%' . $query . '%';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':title', $query, PDO::PARAM_STR);
+        $stmt->execute();
+        print_r( $stmt->errorInfo());
+        //echo $stmt->rowCount();
+        return $stmt->fetchAll(PDO::FETCH_CLASS);
     }
 }
