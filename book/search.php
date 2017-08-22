@@ -7,9 +7,9 @@ if (isset($_POST['submit'])) {
     $query = $_POST['search'];
     $results = $DB->searchBooks($query);
 }
+$pagetitle = 'Search books';
 include($CFG->dirroot . '/inc/header.php');
 ?>
-<h1>Mark's books</h1>
 
 <form method="post" action="search.php">
     <div class="input-group">

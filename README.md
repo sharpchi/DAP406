@@ -18,3 +18,10 @@
 -  Routes - absolute/relative paths
     - structure of application
 -  POST/GET
+-  Input validation
+-  Always assume there's going to be a problem with form data
+
+## MySQL
+-  types of queries
+-  Methods of using MYSQL from PHP
+-  SQL Injections

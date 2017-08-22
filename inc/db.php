@@ -139,4 +139,14 @@ class db {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_CLASS);
     }
+
+    public function getBook($bookid) {
+        $sql = "SELECT `book`.*, `publisher`.`name` AS `publishername`, `publisher`.`id` AS `publisherid` FROM `book`
+        JOIN `publisher` ON `publisher`.`id` = `book`.`publisher_id`
+        WHERE `book`.`id` = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':id', (int)$bookid, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_CLASS);
+    }
 }
