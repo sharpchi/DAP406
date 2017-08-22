@@ -12,10 +12,27 @@ include($CFG->dirroot . '/inc/header.php');
 <h1>Mark's books</h1>
 
 <form method="post" action="search.php">
-    <label for="search">Search books</label>
-    <input name="search" value="<?php echo $query; ?>" type="text" placeholder="Search books" />
-    <input type="submit" value="Search" name="submit" />
+    <div class="input-group">
+        <input name="search" class="form-control" value="<?php echo $query; ?>" type="text" placeholder="Search books" />
+        <span class="input-group-btn">
+            <button type="submit" class="btn btn-default" name="submit">Search</button>
+        </span>
+    </div>
 </form>
 
 <?php
+
+if (count($results) > 0) {
+    ?>
+    <h2>Results</h2>
+    <ul>
+    <?php
+    foreach ($results as $result) {
+        echo '<li><a href="view.php?id=' . $result->id   . '">' . $result->title . '</a></li>';
+    }
+    ?>
+    </ul>
+    <?php
+}
+
 include($CFG->dirroot . '/inc/footer.php');
