@@ -4,10 +4,13 @@ class db {
     private $conn;
 
     public function __construct() {
-        global $CFG;
+        global $CFG, $DEBUG;
         $dsn = 'mysql:dbname=' . $CFG->dbname . ';host=' . $CFG->dbhost;
         try {
             $this->conn = new PDO($dsn, $CFG->dbuser, $CFG->dbpassword);
+            if ($DEBUG) {
+                $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_WARNING);
+            }
         } catch (PDOException $e) {
             echo 'Connection failed: ' . $e->getMessage();
         }
@@ -134,8 +137,6 @@ class db {
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':title', $query, PDO::PARAM_STR);
         $stmt->execute();
-        print_r( $stmt->errorInfo());
-        //echo $stmt->rowCount();
         return $stmt->fetchAll(PDO::FETCH_CLASS);
     }
 }

@@ -10,9 +10,7 @@ if (isset($_POST['submit'])) {
 include($CFG->dirroot . '/inc/header.php');
 ?>
 <h1>Mark's books</h1>
-<?php
-    print_r($results);
-?>
+
 <form method="post" action="search.php">
     <label for="search">Search books</label>
     <input name="search" value="<?php echo $query; ?>" type="text" placeholder="Search books" />
