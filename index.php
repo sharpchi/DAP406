@@ -4,7 +4,6 @@ require_once('config.php');
 
 include($CFG->dirroot . '/inc/header.php');
 ?>
-    <h1>Mark's books</h1>
     <form method="POST" action="book/search.php">
         <label for="search">Search books</label>
         <input name="search" value="" type="text" placeholder="Search books" />
