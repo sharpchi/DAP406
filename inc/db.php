@@ -149,4 +149,10 @@ class db {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_CLASS);
     }
+
+    public function getPublishers() {
+        $sql = "SELECT * FROM `publisher`";
+        $results = $this->conn->query($sql);
+        return $results->fetchAll(PDO::FETCH_CLASS);
+    }
 }
