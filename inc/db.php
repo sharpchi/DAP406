@@ -106,7 +106,7 @@ class db {
     public function updatePublisher($id, $name, $address1, $address2, $town, $county, $country, $postcode, $phone, $www, $twitter) {
 
         $sql = "UPDATE `publisher` SET
-            (`name`=:name, `address1`=:address1, `address2`:=address2, `town`=:town, `county`=:county, `country`=:country, `postcode`=:postcode, `phone`=:phone, `www`=:www, `twitter`=:twitter)";
+            `name`=:name, `address1`=:address1, `address2`:=address2, `town`=:town, `county`=:county, `country`=:country, `postcode`=:postcode, `phone`=:phone, `www`=:www, `twitter`=:twitter";
 
         $stmt = $this->conn->prepare($sql);
 
@@ -130,7 +130,7 @@ class db {
     public function updateAuthor($id, $firstname, $lastname, $www, $twitter) {
 
         $sql = "UPDATE `author` SET
-            (`firstname`=:firstname, `lastname`=:lastname, `www`=:www, `twitter`=:twitter)";
+            `firstname`=:firstname, `lastname`=:lastname, `www`=:www, `twitter`=:twitter";
 
         $stmt = $this->conn->prepare($sql);
 
@@ -180,7 +180,7 @@ class db {
      * @param int $id PublisherID
      * @return object Publisher (false if no result)
      */
-    public function getPublisherById($id) {
+    public function getPublisher($id) {
         $sql = "SELECT * FROM `publisher` WHERE `id` = :id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);

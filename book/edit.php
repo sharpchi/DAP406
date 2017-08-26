@@ -64,7 +64,7 @@ if (isset($_GET['id'])) {
         $errors = true;
         $errormessages['publisherid'] = 'This publisher is not valid.';
     } else {
-        if (!$DB->getPublisherById($book->publisherid)) {
+        if (!$DB->getPublisher($book->publisherid)) {
             $errors = true;
             $errormessages['publisherid'] = 'This publisher is not valid.';
         }
