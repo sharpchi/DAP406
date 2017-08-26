@@ -29,6 +29,18 @@ class db {
         return $this->conn->lastInsertId();
     }
 
+    /**
+     * Delete book
+     * @param int $id BookID
+     * @return bool True/False book deleted
+     */
+    public function deleteBook($id) {
+        $sql = "DELETE FROM `book` WHERE `id`=:id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
     public function insertPublisher($name, $address1, $address2, $town, $county, $country, $postcode, $phone, $www, $twitter) {
         $sql = "INSERT INTO `publisher`
             (`name`, `address1`, `address2`, `town`, `county`, `country`, `postcode`, `phone`, `www`, `twitter`)
