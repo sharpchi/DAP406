@@ -16,14 +16,14 @@ class db {
         }
     }
 
-    public function insertBook($title, $authors, $genres, $yearpublished, $publisherid, $isbn) {
-        $sql = "INSERT into `book` (`title`,`yearpublished`,`isbn`,`publisher`) VALUES (:title, :yearpublished, :isbn, :publisher)";
+    public function insertBook($params) {
+        $sql = "INSERT into `book` (`title`,`yearpublished`,`isbn`,`publisherid`) VALUES (:title, :yearpublished, :isbn, :publisherid)";
         $stmt = $this->conn->prepare($sql);
-
-        $stmt->bindValue(':title', $title, PDO::PARAM_STR);
-        $stmt->bindValue(':yearpublished', $yearpublished, PDO::PARAM_INT);
-        $stmt->bindValue(':isbn', $isbn, PDO::PARAM_STR);
-        $stmt->bindValue(':publisherid', $publisherid, PDO::PARAM_INT);
+        //print_r($stmt);
+        $stmt->bindValue(':title', $params['title'], PDO::PARAM_STR);
+        $stmt->bindValue(':yearpublished', $params['yearpublished'], PDO::PARAM_INT);
+        $stmt->bindValue(':isbn', $params['isbn'], PDO::PARAM_STR);
+        $stmt->bindValue(':publisherid', $params['publisherid'], PDO::PARAM_INT);
 
         $stmt->execute();
         return $this->conn->lastInsertId();
@@ -74,17 +74,20 @@ class db {
 
     }
 
-    public function updateBook($id, $title, $authors, $genres, $yearpublished, $publisherid, $isbn) {
-        $sql = "UPDATE `book` SET (`title`=:title,`yearpublished`=:yearpublished,`isbn`=:isbn,`publisher`=:publisher) WHERE `id`=:id";
+    /**
+     * Updates an existing book
+     * @param array $params An array of book parameters
+     */
+    public function updateBook($params) {
+        $sql = "UPDATE `book` SET `title`=:title,`yearpublished`=:yearpublished,`isbn`=:isbn,`publisherid`=:publisherid WHERE `id`=:id";
         $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':title', $params['title'], PDO::PARAM_STR);
+        $stmt->bindValue(':yearpublished', $params['yearpublished'], PDO::PARAM_INT);
+        $stmt->bindValue(':isbn', $params['isbn'], PDO::PARAM_STR);
+        $stmt->bindValue(':publisherid', $params['publisherid'], PDO::PARAM_INT);
+        $stmt->bindValue(':id', $params['id'], PDO::PARAM_INT);
 
-        $stmt->bindValue(':title', $title, PDO::PARAM_STR);
-        $stmt->bindValue(':yearpublished', $yearpublished, PDO::PARAM_INT);
-        $stmt->bindValue(':isbn', $isbn, PDO::PARAM_STR);
-        $stmt->bindValue(':publisherid', $publisherid, PDO::PARAM_INT);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-
-        $stmt->execute();
+        return $stmt->execute();
 
     }
 
@@ -131,7 +134,7 @@ class db {
 
     public function searchBooks($query) {
         $sql = "SELECT `book`.*, `publisher`.`name` AS `publishername` FROM `book`
-        JOIN `publisher` ON `publisher`.`id` = `book`.`publisher_id`
+        JOIN `publisher` ON `publisher`.`id` = `book`.`publisherid`
         WHERE `title` LIKE :title";
         $query = '%' . $query . '%';
         $stmt = $this->conn->prepare($sql);
@@ -142,17 +145,34 @@ class db {
 
     public function getBook($bookid) {
         $sql = "SELECT `book`.*, `publisher`.`name` AS `publishername`, `publisher`.`id` AS `publisherid` FROM `book`
-        JOIN `publisher` ON `publisher`.`id` = `book`.`publisher_id`
+        JOIN `publisher` ON `publisher`.`id` = `book`.`publisherid`
         WHERE `book`.`id` = :id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', (int)$bookid, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_CLASS);
+        return $stmt->fetch(PDO::FETCH_OBJ);
     }
 
+    /**
+     * Gets full list of all publishers available.
+     * @return array List of publishers (objects)
+     */
     public function getPublishers() {
         $sql = "SELECT * FROM `publisher`";
         $results = $this->conn->query($sql);
         return $results->fetchAll(PDO::FETCH_CLASS);
+    }
+
+    /**
+     * Gets details for a single publisher.
+     * @param int $id PublisherID
+     * @return object Publisher (false if no result)
+     */
+    public function getPublisherById($id) {
+        $sql = "SELECT * FROM `publisher` WHERE `id` = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_OBJ);
     }
 }

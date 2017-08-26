@@ -26,8 +26,10 @@
 -  form validation
     -  client side
         -  html5
+            -  Limitations
         -  javascript
     -  server side
+
 
 ## MySQL
 -  types of queries
