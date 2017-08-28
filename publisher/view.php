@@ -59,8 +59,8 @@ if (!$publisher) {
             <a href="<?php echo $twitterurl; ?>"><?php echo $publisher->twitter; ?></a></td>
         </tr>
     </table>
-    <a href="edit.php?id=<?php echo $publisher->id; ?>" class="btn btn-primary" title="Edit book">Edit</a>
-    <a href="delete.php?id=<?php echo $publisher->id; ?>" class="btn btn-danger" title="Delete book">Delete</a>
+    <a href="edit.php?id=<?php echo $publisher->id; ?>" class="btn btn-primary" title="Edit publisher">Edit</a>
+    <a href="delete.php?id=<?php echo $publisher->id; ?>" class="btn btn-danger" title="Delete publisher">Delete</a>
 
     <?php
 }

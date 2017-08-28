@@ -16,7 +16,7 @@ class db {
             echo 'Connection failed: ' . $e->getMessage();
         }
         $this->tables = [
-            'book', 'publisher'
+            'book', 'publisher', 'author'
         ];
     }
 
@@ -87,24 +87,85 @@ class db {
         return $stmt->execute();
     }
 
-    public function insertAuthor($firstname, $lastname, $www, $twitter) {
+    /**
+     * Insert Author
+     * @param object $author Author object
+     * @return int authorID
+     */
+    public function insertAuthor($author) {
+        // unqiue keys: id, name
+        if ($this->recordExists('author', ['firstname' => $author->firstname, 'lastname' => $author->lastname])) {
+            return false;
+        }
 
         $sql = "INSERT INTO `author`
-            (`firstname`, `lastname`, `www`, `twitter`)
+            (`firstname`, `lastname`, `email`, `www`, `twitter`)
             VALUES
-            (:firstname, :lastname, :www, :twitter)";
+            (:firstname, :lastname, :email, :www, :twitter)";
 
         $stmt = $this->conn->prepare($sql);
 
-        $stmt->bindValue(':firstname', $firstname, PDO::PARAM_STR);
-        $stmt->bindValue(':lastname', $lastname, PDO::PARAM_STR);
-        $stmt->bindValue(':www', $www, PDO::PARAM_STR);
-        $stmt->bindValue(':twitter', $twitter, PDO::PARAM_STR);
+        $stmt->bindValue(':firstname', $author->firstname, PDO::PARAM_STR);
+        $stmt->bindValue(':lastname', $author->lastname, PDO::PARAM_STR);
+        $stmt->bindValue(':email', $author->email, PDO::PARAM_STR);
+        $stmt->bindValue(':www', $author->www, PDO::PARAM_STR);
+        $stmt->bindValue(':twitter', $author->twitter, PDO::PARAM_STR);
 
         $stmt->execute();
 
         return $this->conn->lastInsertId();
 
+    }
+
+    /**
+     * Updates an author's details.
+     * @param object $author Author details
+     * @return book True/False updated.
+     */
+    public function updateAuthor($author) {
+
+        $sql = "UPDATE `author` SET
+            `firstname`=:firstname, `lastname`=:lastname, `email`=:email, `www`=:www, `twitter`=:twitter WHERE `id`=:id";
+
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bindValue(':firstname', $author->firstname, PDO::PARAM_STR);
+        $stmt->bindValue(':lastname', $author->lastname, PDO::PARAM_STR);
+        $stmt->bindValue(':email', $author->email, PDO::PARAM_STR);
+        $stmt->bindValue(':www', $author->www, PDO::PARAM_STR);
+        $stmt->bindValue(':twitter', $author->twitter, PDO::PARAM_STR);
+        $stmt->bindValue(':id', $author->id, PDO::PARAM_INT);
+
+        return $stmt->execute();
+
+    }
+
+    /**
+     * Searches for an author by their fullname (firstname, lastname)
+     * @param string $query
+     * @return array List of authors
+     */
+    public function searchAuthors($query) {
+        $sql = "SELECT a.*, CONCAT(a.firstname, ' ', a.lastname) AS fullname FROM `author` AS a
+        WHERE CONCAT(`firstname`, ' ', `lastname`) LIKE :name";
+        $query = '%' . $query . '%';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':name', $query, PDO::PARAM_STR);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_CLASS);
+    }
+
+    /**
+     * Gets details for a single author.
+     * @param int $id AuthorID
+     * @return object Author (false if no result)
+     */
+    public function getAuthor($id) {
+        $sql = "SELECT *, CONCAT(`firstname`, ' ', `lastname`) AS `fullname` FROM `author` WHERE `id` = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_OBJ);
     }
 
     /**
@@ -159,23 +220,6 @@ class db {
 
         return $stmt->execute();
 
-
-    }
-
-    public function updateAuthor($id, $firstname, $lastname, $www, $twitter) {
-
-        $sql = "UPDATE `author` SET
-            `firstname`=:firstname, `lastname`=:lastname, `www`=:www, `twitter`=:twitter";
-
-        $stmt = $this->conn->prepare($sql);
-
-        $stmt->bindValue(':firstname', $firstname, PDO::PARAM_STR);
-        $stmt->bindValue(':lastname', $lastname, PDO::PARAM_STR);
-        $stmt->bindValue(':www', $www, PDO::PARAM_STR);
-        $stmt->bindValue(':twitter', $twitter, PDO::PARAM_STR);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-
-        $stmt->execute();
 
     }
 
