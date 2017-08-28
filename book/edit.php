@@ -73,12 +73,7 @@ if (isset($_GET['id'])) {
     if (!$errors) {
         //print_r($book);
         if ($book->id == 0) {
-            $inserted = $DB->insertBook([
-                'title' => $book->title,
-                'yearpublished' => $book->yearpublished,
-                'isbn' => $book->isbn,
-                'publisherid' => $book->publisherid
-            ]);
+            $inserted = $DB->insertBook($book);
             if ($inserted) {
                 $book->id = $inserted;
             } else {
@@ -87,13 +82,7 @@ if (isset($_GET['id'])) {
             }
         } else {
             // Update book
-            $updated = $DB->updateBook([
-                'id' => $book->id,
-                'title' => $book->title,
-                'yearpublished' => $book->yearpublished,
-                'isbn' => $book->isbn,
-                'publisherid' => $book->publisherid
-            ]);
+            $updated = $DB->updateBook($book);
 
             if (!$updated) {
                 $errors = true;

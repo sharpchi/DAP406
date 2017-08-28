@@ -20,17 +20,30 @@ class db {
         ];
     }
 
-    public function insertBook($params) {
+    public function insertBook($book) {
+
         $sql = "INSERT into `book` (`title`,`yearpublished`,`isbn`,`publisherid`) VALUES (:title, :yearpublished, :isbn, :publisherid)";
         $stmt = $this->conn->prepare($sql);
         //print_r($stmt);
-        $stmt->bindValue(':title', $params['title'], PDO::PARAM_STR);
-        $stmt->bindValue(':yearpublished', $params['yearpublished'], PDO::PARAM_INT);
-        $stmt->bindValue(':isbn', $params['isbn'], PDO::PARAM_STR);
-        $stmt->bindValue(':publisherid', $params['publisherid'], PDO::PARAM_INT);
+        $stmt->bindValue(':title', $book['title'], PDO::PARAM_STR);
+        $stmt->bindValue(':yearpublished', $book['yearpublished'], PDO::PARAM_INT);
+        $stmt->bindValue(':isbn', $book['isbn'], PDO::PARAM_STR);
+        $stmt->bindValue(':publisherid', $book['publisherid'], PDO::PARAM_INT);
 
         $stmt->execute();
-        return $this->conn->lastInsertId();
+        $book->id = $this->conn->lastInsertId();
+        if (isset($book->authors)) {
+            foreach ($book->authors as $author) {
+                // if not has authorid, create new author, and store authorid
+                // add bookid and authorid to book_authors table
+            }
+        }
+
+        return $book->id;
+    }
+
+    private function addBookAuthor($bookid, $authorid) {
+        // must be unique
     }
 
     /**
