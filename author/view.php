@@ -42,6 +42,16 @@ if (!$author) {
     <a href="delete.php?id=<?php echo $author->id; ?>" class="btn btn-danger" title="Delete author">Delete</a>
 
     <?php
+    $books = $DB->getAuthorsBooks($author->id);
+    if ($books) {
+        echo '<h2>' . $author->fullname . '\'s books</h2>';
+        echo '<ul>';
+        $bookurl = $CFG->www . '/book/view.php?id=';
+        foreach ($books as $book) {
+            echo '<li><a href="' . $bookurl . $book->id . '">' . $book->title . '</a></li>';
+        }
+        echo '</ul>';
+    }
 }
 
 include($CFG->dirroot . '/inc/footer.php');

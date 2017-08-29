@@ -108,6 +108,17 @@ class db {
         $stmt->execute();
     }
 
+    public function getAuthorsBooks($authorid) {
+        $sql = "SELECT `b`.* FROM `book` AS `b`
+        JOIN `book_author` AS `ba` ON `ba`.`bookid` = `b`.`id`
+        WHERE `ba`.`authorid`=:authorid";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':authorid', $authorid, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
+    }
+
     /**
      * Delete book
      * @param int $id BookID
