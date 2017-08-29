@@ -1,28 +1,3 @@
-<?php
-$menu = [
-    'home' => [
-        'url' => '/index.php',
-        'label' => 'Home'
-    ],
-    'book' => [
-        'url' => '/book/',
-        'label' => 'Books'
-    ],
-    'publisher' => [
-        'url' => '/publisher/',
-        'label' => 'Publishers'
-    ],
-    'author' => [
-        'url' => '/author/',
-        'label' => 'Authors'
-    ],
-    'genre' => [
-        'url' => '/genre/',
-        'label' => 'Genres'
-    ]
-];
-
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>

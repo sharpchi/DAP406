@@ -1,3 +1,58 @@
+<?php
+$menu = [
+    'home' => [
+        'url' => '/index.php',
+        'label' => 'Home'
+    ],
+    'book' => [
+        'url' => '/book/',
+        'label' => 'Books',
+        'children' => [
+            'search' => [
+                'url' => '/book/search.php',
+                'label' => 'Books'
+            ],
+            'edit' => [
+                'url' => '/book/edit.php',
+                'label' => 'New book'
+            ]
+        ]
+    ],
+    'publisher' => [
+        'url' => '/publisher/',
+        'label' => 'Publishers',
+        'children' => [
+            'search' => [
+                'url' => '/publisher/search.php',
+                'label' => 'Publishers'
+            ],
+            'edit' => [
+                'url' => '/publisher/edit.php',
+                'label' => 'New publisher'
+            ]
+        ]
+    ],
+    'author' => [
+        'url' => '/author/',
+        'label' => 'Authors',
+        'children' => [
+            'search' => [
+                'url' => '/author/search.php',
+                'label' => 'Authors'
+            ],
+            'edit' => [
+                'url' => '/author/edit.php',
+                'label' => 'New author'
+            ]
+        ]
+    ],
+    // 'genre' => [
+    //     'url' => '/genre/',
+    //     'label' => 'Genres'
+    // ]
+];
+
+?>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <a class="navbar-brand" href="<?php echo $CFG->www; ?>">Mark's Books</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
