@@ -34,6 +34,17 @@ if (!$book) {
             <th>ISBN</th>
             <td><?php echo $book->isbn; ?></td>
         </tr>
+        <tr>
+            <th>Authors</th>
+            <td><?php
+                $authors = [];
+                foreach ($book->authors as $author) {
+                    $authors[] = '<a href="' . $CFG->www . '/author/view.php?id=' . $author->id . '">' . $author->fullname . '</a>';
+                }
+                echo join(', ', $authors);
+            ?>
+            </td>
+        </tr>
     </table>
     <a href="edit.php?id=<?php echo $book->id; ?>" class="btn btn-primary" title="Edit book">Edit</a>
     <a href="delete.php?id=<?php echo $book->id; ?>" class="btn btn-danger" title="Delete book">Delete</a>

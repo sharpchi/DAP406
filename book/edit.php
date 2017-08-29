@@ -22,6 +22,7 @@ $book = new stdClass();
 
 if (isset($_GET['id'])) {
     $book = $DB->getBook($_GET['id']);
+    $book->newauthors = '';
     if (!$book) {
         $errors = true;
         $errormessages['id'] = 'This book id is not recognised.';
@@ -36,6 +37,16 @@ if (isset($_GET['id'])) {
         $errors = true;
         $errormessages['title'] = 'Too short a title';
     }
+
+    $book->authors = isset($_POST['authors']) ? $_POST['authors'] : [];
+    foreach ($book->authors as $author) {
+        if (!is_int((int)$author)) {
+            $errors = true;
+            $errormessages['author'] = 'Invalid author';
+        }
+    }
+
+    $book->newauthors = $_POST['newauthors'];
 
     $book->yearpublished = $_POST['yearpublished'];
     if (!is_int((int)$book->yearpublished) || $book->yearpublished < 1800 || $book->yearpublished > date('Y')) {
@@ -89,7 +100,10 @@ if (isset($_GET['id'])) {
                 $errormessages['update'] = 'Unable to save the book.';
             }
         }
+        $book->newauthors = ''; // Don't want to add it again
     }
+    // authors needs to be a db list
+    $book->authors = $DB->getBookAuthors($book->id);
 
 }
 if (!isset($book->id)) {
@@ -98,6 +112,8 @@ if (!isset($book->id)) {
     $book = new stdClass();
     $book->id = 0;
     $book->title = '';
+    $book->authors = [];
+    $book->newauthors = '';
     $book->yearpublished = date('Y');
     $book->isbn = 0;
     $book->publisherid = '';
@@ -140,6 +156,24 @@ if ($updated && $formsubmitted) {
             }
         ?>
     </div>
+    <!-- authors -->
+    <?php
+    $authors = $DB->getAuthors();
+
+     ?>
+    <div class="form-group">
+        <label for="authors">Authors</label>
+        <select name="authors[]" class="form-control" multiple>
+            <?php
+
+            foreach ($authors as $author) {
+                $selected = $DB->inRow($book->authors, 'id', $author->id) ? ' selected="selected"' : '';
+                echo '<option value="' . $author->id . '"' . $selected . '>' . $author->fullname . '</option>';
+            }
+            ?>
+        </select>
+        <input type="text" name="newauthors" class="form-control" value="<?php echo $book->newauthors; ?>" placeholder="New authors (comma separated list)" />
+    </div>
     <!-- yearpublished -->
     <div class="form-group">
         <label for="yearpublished">Year published</label>
@@ -163,7 +197,7 @@ if ($updated && $formsubmitted) {
     <!-- publisher - select -->
     <div class="form-group">
         <label for="publisherid">Publisher</label>
-        <select name="publisherid" required>
+        <select name="publisherid" class="form-control" required>
             <option value="">Select publisher</option>
             <?php
             $publishers = $DB->getPublishers();

@@ -16,13 +16,15 @@ class db {
             echo 'Connection failed: ' . $e->getMessage();
         }
         $this->tables = [
-            'book', 'publisher', 'author'
+            'book', 'publisher', 'author', 'book_author'
         ];
     }
 
     public function insertBook($book) {
 
-        $sql = "INSERT into `book` (`title`,`yearpublished`,`isbn`,`publisherid`) VALUES (:title, :yearpublished, :isbn, :publisherid)";
+        $sql = "INSERT into `book`
+        (`title`,`yearpublished`,`isbn`,`publisherid`)
+        VALUES (:title, :yearpublished, :isbn, :publisherid)";
         $stmt = $this->conn->prepare($sql);
         //print_r($stmt);
         $stmt->bindValue(':title', $book['title'], PDO::PARAM_STR);
@@ -32,18 +34,78 @@ class db {
 
         $stmt->execute();
         $book->id = $this->conn->lastInsertId();
-        if (isset($book->authors)) {
-            foreach ($book->authors as $author) {
-                // if not has authorid, create new author, and store authorid
-                // add bookid and authorid to book_authors table
+        $this->mergeNewAuthors($book->authors, $book->newauthors);
+        $currentBookAuthors = $this->getBookAuthors($book->id);
+        foreach ($currentBookAuthors as $currentBookAuthor) {
+            if (!in_array($currentBookAuthor->id, $book->authors)) {
+                $this->removeBookAuthor($book->id, $currentBookAuthor->id);
             }
         }
-
+        foreach ($book->authors as $author) {
+            $this->addBookAuthor($book->id, $author);
+        }
         return $book->id;
     }
 
+    /**
+     * Takes $authors and $newauthors and merges them.
+     * @param array $authors List of Author objects
+     * @param string $newauthors Comma separated list of authors
+     * @return array List of Author objects
+     */
+    private function mergeNewAuthors(&$authors, $newauthors) {
+        $newauthors = explode(',', $newauthors);
+        foreach ($newauthors as $newauthor) {
+            $newauthor = trim($newauthor);
+            if (empty($newauthor)) continue;
+            //echo '#' . $newauthor . '#';
+            $lastspace = strrpos($newauthor, ' ');
+            $author = new stdClass();
+
+            $author->firstname = ucwords(strtolower(trim(substr($newauthor, 0, $lastspace))));
+            $author->lastname = ucwords(strtolower(trim(substr($newauthor, $lastspace))));
+            $author->www = '';
+            $author->twitter = '';
+            $author->email = '';
+            if ($inserted = $this->insertAuthor($author)) {
+                $author->id = $inserted;
+                $book->authors[] = $author;
+            } else {
+                // this already exists, so let's get it
+                $author = $this->getRecord('author', [
+                    'firstname' => $author->firstname,
+                    'lastname' => $author->lastname
+                ]);
+                if ($author) {
+                    $authors[] = $author;
+                }
+            }
+        }
+        //print_r($authors);
+    }
+
     private function addBookAuthor($bookid, $authorid) {
-        // must be unique
+        $sql = "INSERT INTO `book_author`
+        (`bookid`, `authorid`)
+        VALUES (:bookid, :authorid)";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':bookid', $bookid, PDO::PARAM_INT);
+        $stmt->bindValue(':authorid', $authorid, PDO::PARAM_INT);
+
+        $stmt->execute();
+        return $this->conn->lastInsertId();
+    }
+
+    private function removeBookAuthor($bookid, $authorid) {
+        $sql = "DELETE FROM `book_author`
+            WHERE `bookid`=:bookid AND `authorid`=:authorid";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':bookid', $bookid, PDO::PARAM_INT);
+        $stmt->bindValue(':authorid', $authorid, PDO::PARAM_INT);
+
+        $stmt->execute();
     }
 
     /**
@@ -52,6 +114,7 @@ class db {
      * @return bool True/False book deleted
      */
     public function deleteBook($id) {
+        $this->deleteBookAuthors($id);
         $sql = "DELETE FROM `book` WHERE `id`=:id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -156,12 +219,15 @@ class db {
     /**
      * Searches for an author by their fullname (firstname, lastname)
      * @param string $query
+     * @param bool $like Enforces a LIKE query
      * @return array List of authors
      */
-    public function searchAuthors($query) {
+    public function searchAuthors($query, $like = true) {
+        $comparer = $like ? 'LIKE' : '=';
         $sql = "SELECT a.*, CONCAT(a.firstname, ' ', a.lastname) AS fullname FROM `author` AS a
         WHERE CONCAT(`firstname`, ' ', `lastname`) LIKE :name";
-        $query = '%' . $query . '%';
+
+        $query = $like ? '%' . $query . '%' : $query;
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':name', $query, PDO::PARAM_STR);
         $stmt->execute();
@@ -182,6 +248,18 @@ class db {
     }
 
     /**
+     * Gets details for all authors.
+     * @return object Author (false if no result)
+     */
+    public function getAuthors() {
+        $sql = "SELECT *, CONCAT(`firstname`, ' ', `lastname`) AS `fullname` FROM `author`";
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
+    }
+
+    /**
      * Updates an existing book
      * @param array $book An array of book parameters
      */
@@ -194,8 +272,19 @@ class db {
         $stmt->bindValue(':publisherid', $book->publisherid, PDO::PARAM_INT);
         $stmt->bindValue(':id', $book->id, PDO::PARAM_INT);
 
-        return $stmt->execute();
+        $bookupdated = $stmt->execute();
+        $this->mergeNewAuthors($book->authors, $book->newauthors);
+        $currentBookAuthors = $this->getBookAuthors($book->id);
+        foreach ($currentBookAuthors as $currentBookAuthor) {
+            if (!in_array($currentBookAuthor->id, $book->authors)) {
+                $this->removeBookAuthor($book->id, $currentBookAuthor->id);
+            }
+        }
+        foreach ($book->authors as $author) {
+            $this->addBookAuthor($book->id, $author);
+        }
 
+        return $bookupdated;
     }
 
     public function searchPublishers($query) {
@@ -248,13 +337,37 @@ class db {
     }
 
     public function getBook($bookid) {
-        $sql = "SELECT `book`.*, `publisher`.`name` AS `publishername`, `publisher`.`id` AS `publisherid` FROM `book`
-        JOIN `publisher` ON `publisher`.`id` = `book`.`publisherid`
-        WHERE `book`.`id` = :id";
+        $sql = "SELECT `b`.*, `p`.`name` AS `publishername`, `p`.`id` AS `publisherid`
+        FROM `book` AS `b`
+        JOIN `publisher` AS `p` ON `p`.`id` = `b`.`publisherid`
+        WHERE `b`.`id` = :id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', (int)$bookid, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_OBJ);
+        $book = $stmt->fetch(PDO::FETCH_OBJ);
+
+        $book->authors = $this->getBookAuthors($bookid);
+        // print_r($book);
+        return $book;
+    }
+
+    public function getBookAuthors($bookid) {
+        $sql = "SELECT `a`.*, CONCAT(`a`.`firstname` , ' ', `a`.`lastname`) AS `fullname`
+            FROM `author` AS `a`
+            JOIN `book_author` AS `ba` ON `ba`.`authorid` = `a`.`id`
+            WHERE `ba`.`bookid`=:bookid";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':bookid', $bookid, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchALL(PDO::FETCH_OBJ);
+    }
+
+    public function deleteBookAuthors($bookid) {
+        $sql = "DELETE FROM `book_author` WHERE `bookid`=:bookid";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':bookid', $bookid, PDO::PARAM_INT);
+        $stmt->execute();
     }
 
     /**
@@ -304,6 +417,59 @@ class db {
         }
         $stmt->execute();
         return ($stmt->rowCount() > 0);
+    }
+
+    /**
+     * This gets a single record. An error is thrown if more than one is found.
+     * @param string $table table name
+     * @param array $conditions field/value pairs
+     * @return object A row from the table (false is returned if no record or more than one)
+     */
+    public function getRecord($table, $conditions) {
+        // Need to check this is a valid table.
+        if (!in_array($table, $this->tables)) {
+            return false;
+        }
+        $params = [];
+        foreach ($conditions as $field => $value) {
+            $params[] = "`{$field}`=:{$field}";
+        }
+        $params = join(' AND ', $params);
+        $sql = "SELECT * FROM {$table} WHERE {$params}";
+        $stmt = $this->conn->prepare($sql);
+
+        foreach ($conditions as $field => $value) {
+            $stmt->bindValue(":{$field}", $value);
+        }
+        $stmt->execute();
+        if ($stmt->rowCount() !== 1) {
+            return false;
+        } else {
+            return $stmt->fetch(PDO::FETCH_OBJ);
+        }
+    }
+
+    /**
+     * Checks to see if an object is in an array of db rows
+     * @param array $array Array of objects
+     * @param string $field Object field name
+     * @param string $value The value being searched for
+     * @return bool Record is present or not.
+     */
+    public function inRow($array, $field, $value) {
+        if (!is_array($array)) {
+            return false;
+        }
+
+        foreach ($array as $item) {
+            if (!isset($item->{$field})) {
+                return false;
+            }
+            if ($item->{$field} == $value) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public function getErrors() {
