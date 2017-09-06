@@ -36,8 +36,4 @@
 -  Methods of using MYSQL from PHP
 -  SQL Injections
 
-## Lession 1
--  Introduction to MySQL
-    -  Create tables
-    -  Data types
-    -  
+
