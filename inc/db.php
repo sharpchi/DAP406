@@ -27,10 +27,10 @@ class db {
         VALUES (:title, :yearpublished, :isbn, :publisherid)";
         $stmt = $this->conn->prepare($sql);
         //print_r($stmt);
-        $stmt->bindValue(':title', $book['title'], PDO::PARAM_STR);
-        $stmt->bindValue(':yearpublished', $book['yearpublished'], PDO::PARAM_INT);
-        $stmt->bindValue(':isbn', $book['isbn'], PDO::PARAM_STR);
-        $stmt->bindValue(':publisherid', $book['publisherid'], PDO::PARAM_INT);
+        $stmt->bindValue(':title', $book->title, PDO::PARAM_STR);
+        $stmt->bindValue(':yearpublished', $book->yearpublished, PDO::PARAM_INT);
+        $stmt->bindValue(':isbn', $book->isbn, PDO::PARAM_STR);
+        $stmt->bindValue(':publisherid', $book->publisherid, PDO::PARAM_INT);
 
         $stmt->execute();
         $book->id = $this->conn->lastInsertId();
