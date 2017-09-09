@@ -98,6 +98,7 @@ class db {
     }
 
     private function removeBookAuthor($bookid, $authorid) {
+        return false;
         $sql = "DELETE FROM `book_author`
             WHERE `bookid`=:bookid AND `authorid`=:authorid";
 
@@ -125,6 +126,7 @@ class db {
      * @return bool True/False book deleted
      */
     public function deleteBook($id) {
+        return false;
         $this->deleteBookAuthors($id);
         $sql = "DELETE FROM `book` WHERE `id`=:id";
         $stmt = $this->conn->prepare($sql);
@@ -168,6 +170,7 @@ class db {
      * @return bool True/False publisher deleted
      */
     public function deletePublisher($id) {
+        return false;
         $sql = "DELETE FROM `publisher` WHERE `id`=:id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -375,6 +378,7 @@ class db {
     }
 
     public function deleteBookAuthors($bookid) {
+        return false;
         $sql = "DELETE FROM `book_author` WHERE `bookid`=:bookid";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindValue(':bookid', $bookid, PDO::PARAM_INT);
